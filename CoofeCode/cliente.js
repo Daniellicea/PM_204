@@ -1,91 +1,76 @@
-//   CLIENTE - CoofeCode
+// CLIENTE - CoofeCode
+// Modulo de cliente: muestra menu y hace pedidos
+// Usa: funciones, arrays
 
-// --- Módulo Cocina ---
-const cocina = {
-  productos: [
-    { id: 1, nombre: "Café Americano", precio: 25.00, categoria: "Bebidas Calientes" },
-    { id: 2, nombre: "Capuchino", precio: 35.00, categoria: "Bebidas Calientes" },
-    { id: 3, nombre: "Pan Dulce", precio: 15.00, categoria: "Panadería" },
-    { id: 4, nombre: "Sandwich", precio: 40.00, categoria: "Comida" },
-    { id: 5, nombre: "Frappé", precio: 45.00, categoria: "Bebidas Frías" }
-  ],
+const cocina = require("./cocina");
+const caja = require("./caja");
 
-  obtenerProductosDisponibles() {
-    return this.productos;
-  },
-
-  buscarProductoPorId(id) {
-    return this.productos.find(p => p.id === id);
-  }
-};
-
-// --- Módulo Caja ---
-const caja = {
-  pedidos: [],
-  contador: 1,
-
-  agregarPedido(nombreCliente, itemsPedido) {
-    let total = 0;
-    for (const item of itemsPedido) {
-      const producto = cocina.buscarProductoPorId(item.productoId);
-      if (producto) {
-        total += producto.precio * item.cantidad;
-      }
-    }
-    const pedido = {
-      id: this.contador++,
-      cliente: nombreCliente,
-      items: itemsPedido,
-      total,
-      estado: "Pendiente"
-    };
-    this.pedidos.push(pedido);
-    return pedido;
-  },
-
-  buscarPedido(pedidoId) {
-    return this.pedidos.find(p => p.id === pedidoId);
-  }
-};
-
-// --- Cliente ---
+// Mostrar menu en consola
 function mostrarMenu() {
   const productos = cocina.obtenerProductosDisponibles();
-  console.log("\n===== MENÚ COOFECODE =====");
-  const categorias = [...new Set(productos.map(p => p.categoria))];
 
-  for (const cat of categorias) {
-    console.log(`\n${cat.toUpperCase()}`);
-    const items = productos.filter(p => p.categoria === cat);
-    for (const item of items) {
-      console.log(`[${item.id}] ${item.nombre} - $${item.precio.toFixed(2)}`);
+  console.log("\n===== MENU COOFECODE =====");
+
+  // Agrupar por categoria
+  const categorias = [];
+  for (let i = 0; i < productos.length; i++) {
+    if (categorias.indexOf(productos[i].categoria) === -1) {
+      categorias.push(productos[i].categoria);
     }
   }
+
+  for (let c = 0; c < categorias.length; c++) {
+    console.log("\n" + categorias[c].toUpperCase());
+    for (let i = 0; i < productos.length; i++) {
+      if (productos[i].categoria === categorias[c]) {
+        console.log("[" + productos[i].id + "] " + productos[i].nombre + " - $" + productos[i].precio.toFixed(2));
+      }
+    }
+  }
+
+  console.log("\n==========================");
 }
 
+// Hacer pedido a caja
 function hacerPedido(nombreCliente, itemsPedido) {
-  console.log(`\nCliente: ${nombreCliente}`);
+  console.log("\nCliente: " + nombreCliente);
+
+  if (!itemsPedido || itemsPedido.length === 0) {
+    console.log("No seleccionaste ningun producto.");
+    return null;
+  }
+
+  // Mostrar resumen
+  console.log("Resumen de tu pedido:");
+  for (let i = 0; i < itemsPedido.length; i++) {
+    const producto = cocina.buscarProductoPorId(itemsPedido[i].productoId);
+    if (producto) {
+      console.log("  " + itemsPedido[i].cantidad + "x " + producto.nombre + " - $" + (producto.precio * itemsPedido[i].cantidad).toFixed(2));
+    }
+  }
+
+  // Enviar pedido a caja
   const pedido = caja.agregarPedido(nombreCliente, itemsPedido);
-  console.log("Pedido realizado con éxito!");
   return pedido;
 }
 
+// Ver estado de un pedido
 function verEstadoPedido(pedidoId) {
   const pedido = caja.buscarPedido(pedidoId);
+
   if (!pedido) {
-    console.log(`No se encontró el pedido #${pedidoId}`);
-    return;
+    console.log("No se encontro el pedido #" + pedidoId);
+    return null;
   }
-  console.log(`\nPedido #${pedido.id} - Estado: ${pedido.estado}`);
-  console.log(`Total: $${pedido.total.toFixed(2)}`);
+
+  console.log("\nPedido #" + pedido.id + " - Estado: " + pedido.estado);
+  console.log("Total: $" + pedido.total.toFixed(2));
+  return pedido;
 }
 
-// --- Ejemplos de uso ---
-mostrarMenu();
-
-const pedido1 = hacerPedido("Alberto", [
-  { productoId: 1, cantidad: 2 },
-  { productoId: 3, cantidad: 1 }
-]);
-
-verEstadoPedido(pedido1.id);
+// Exportar modulo
+module.exports = {
+  mostrarMenu,
+  hacerPedido,
+  verEstadoPedido,
+};

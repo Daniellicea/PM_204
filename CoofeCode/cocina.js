@@ -147,6 +147,39 @@ function obtenerProductosDisponibles() {
   return disponibles;
 }
 
+// --- Nuevas funciones usando filter() y find() ---
+
+function buscarProductosBaratos() {
+  // Retorna productos con precio menor a 50 usando filter()
+  return catalogo.filter(producto => producto.precio < 50);
+}
+
+function buscarProductosCaros() {
+  // Retorna productos con precio mayor o igual a 50 usando filter()
+  return catalogo.filter(producto => producto.precio >= 50);
+}
+
+function buscarBebidas() {
+  // Retorna productos cuya categoria incluya 'bebida' usando filter()
+  return catalogo.filter(producto => producto.categoria.toLowerCase().includes('bebida'));
+}
+
+function buscarPostres() {
+  // Retorna productos de panaderia o postres usando filter()
+  return catalogo.filter(producto =>
+    producto.categoria.toLowerCase() === 'panaderia' ||
+    producto.categoria.toLowerCase() === 'postre'
+  );
+}
+
+function encontrarPrimerPostre() {
+  // Retorna el PRIMER postre/panaderia que encuentre usando find()
+  return catalogo.find(producto =>
+    producto.categoria.toLowerCase() === 'panaderia' ||
+    producto.categoria.toLowerCase() === 'postre'
+  );
+}
+
 // Exportar modulo
 module.exports = {
   catalogo,
@@ -158,18 +191,108 @@ module.exports = {
   cambiarDisponibilidad,
   eliminarProducto,
   obtenerProductosDisponibles,
+  buscarProductosBaratos,
+  buscarProductosCaros,
+  buscarBebidas,
+  buscarPostres,
+  encontrarPrimerPostre
 };
 
-// PRUEBAS
+// INTERFAZ DE CONSOLA DINAMICA
+const readline = require('readline');
 
-listarCatalogo();
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
 
-agregarProducto("Pizza", "Comida", 120);
+function imprimirResultados(resultados) {
+  if (!resultados || resultados.length === 0) {
+    console.log("No se encontraron productos.");
+    return;
+  }
+  for (let i = 0; i < resultados.length; i++) {
+    const producto = resultados[i];
+    console.log(
+      `[${producto.id}] ${producto.nombre} | ${producto.categoria} | $${producto.precio.toFixed(2)} | ${producto.disponible ? "Disponible" : "Agotado"}`
+    );
+  }
+}
 
-listarCatalogo();
+function mostrarMenu() {
+  console.log("\n========== MENU ==========");
+  console.log("1. Listar catalogo completo");
+  console.log("2. Registrar nuevo producto (Consola)");
+  console.log("3. Buscar productos baratos (< $50) [filter]");
+  console.log("4. Buscar productos caros (>= $50) [filter]");
+  console.log("5. Buscar bebidas [filter]");
+  console.log("6. Buscar postres / panaderia [filter]");
+  console.log("7. Encontrar el primer postre [find]");
+  console.log("8. Salir");
+  console.log("======================================\n");
 
-actualizarProducto(1, { precio: 40 });
+  rl.question('Selecciona una opcion: ', (opcion) => {
+    switch (opcion) {
+      case '1':
+        listarCatalogo();
+        mostrarMenu();
+        break;
+      case '2':
+        rl.question('Nombre del producto: ', (nombre) => {
+          rl.question('Categoria: ', (categoria) => {
+            rl.question('Precio: ', (precio) => {
+              const precioNum = parseFloat(precio);
+              if (!isNaN(precioNum)) {
+                agregarProducto(nombre, categoria, precioNum);
+              } else {
+                console.log("\nError: El precio debe ser un numero.");
+              }
+              mostrarMenu();
+            });
+          });
+        });
+        break;
+      case '3':
+        console.log("\n--- Productos Baratos ---");
+        imprimirResultados(buscarProductosBaratos());
+        mostrarMenu();
+        break;
+      case '4':
+        console.log("\n--- Productos Caros ---");
+        imprimirResultados(buscarProductosCaros());
+        mostrarMenu();
+        break;
+      case '5':
+        console.log("\n--- Bebidas ---");
+        imprimirResultados(buscarBebidas());
+        mostrarMenu();
+        break;
+      case '6':
+        console.log("\n--- Postres / Panaderia ---");
+        imprimirResultados(buscarPostres());
+        mostrarMenu();
+        break;
+      case '7':
+        console.log("\n--- Primer Postre Encontrado ---");
+        const postre = encontrarPrimerPostre();
+        if (postre) {
+          console.log(`[${postre.id}] ${postre.nombre} | ${postre.categoria} | $${postre.precio.toFixed(2)} | ${postre.disponible ? "Disponible" : "Agotado"}`);
+        } else {
+          console.log("No se encontro ningun postre.");
+        }
+        mostrarMenu();
+        break;
+      case '8':
+        console.log("\nSaliendo del programa... ¡Hasta luego!");
+        rl.close();
+        break;
+      default:
+        console.log("\nOpcion no valida. Intenta de nuevo.");
+        mostrarMenu();
+        break;
+    }
+  });
+}
 
-eliminarProducto(3);
-
-listarCatalogo();
+// Iniciar el menu interactivo
+mostrarMenu();

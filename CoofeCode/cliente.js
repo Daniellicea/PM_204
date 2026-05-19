@@ -1,76 +1,204 @@
-// CLIENTE - CoofeCode
-// Modulo de cliente: muestra menu y hace pedidos
-// Usa: funciones, arrays
+// CLIENTE - Delicias Mexicanas
+// Todo en un solo archivo
+//
 
-const cocina = require("./cocina");
-const caja = require("./caja");
 
-// Mostrar menu en consola
+const readline = require("readline");
+
+// ================================
+// PRODUCTOS
+// ================================
+const productos = [
+  {
+    id: 1,
+    nombre: "Cafe Americano",
+    precio: 45,
+    categoria: "Bebidas"
+  },
+  {
+    id: 2,
+    nombre: "Capuccino",
+    precio: 60,
+    categoria: "Bebidas"
+  },
+  {
+    id: 3,
+    nombre: "Croissant",
+    precio: 40,
+    categoria: "Panaderia"
+  },
+  {
+    id: 4,
+    nombre: "Pan Dulce",
+    precio: 25,
+    categoria: "Panaderia"
+  }
+];
+
+// ================================
+// PROMOCIONES
+// ================================
+const promociones = [
+  "2x1 en Cafe Americano",
+  "10% de descuento en pan dulce",
+  "Combo cafe + croissant por $85"
+];
+
+// ================================
+// MOSTRAR MENU
+// ================================
 function mostrarMenu() {
-  const productos = cocina.obtenerProductosDisponibles();
 
-  console.log("\n===== MENU COOFECODE =====");
+  console.log("\n===== MENU DELICIAS MEXICANAS =====");
 
-  // Agrupar por categoria
-  const categorias = [];
-  for (let i = 0; i < productos.length; i++) {
-    if (categorias.indexOf(productos[i].categoria) === -1) {
-      categorias.push(productos[i].categoria);
-    }
-  }
+  // Obtener categorias usando map()
+  const categorias = [
+    ...new Set(
+      productos.map(producto => producto.categoria)
+    )
+  ];
 
-  for (let c = 0; c < categorias.length; c++) {
-    console.log("\n" + categorias[c].toUpperCase());
-    for (let i = 0; i < productos.length; i++) {
-      if (productos[i].categoria === categorias[c]) {
-        console.log("[" + productos[i].id + "] " + productos[i].nombre + " - $" + productos[i].precio.toFixed(2));
-      }
-    }
-  }
+  // Mostrar categorias
+  categorias.forEach(categoria => {
 
-  console.log("\n==========================");
+    console.log("\n" + categoria.toUpperCase());
+
+    const productosCategoria = productos.filter(
+      producto => producto.categoria === categoria
+    );
+
+    productosCategoria.forEach(producto => {
+
+      console.log(
+        "[" + producto.id + "] " +
+        producto.nombre +
+        " - $" +
+        producto.precio.toFixed(2)
+      );
+
+    });
+
+  });
+
+  console.log("\n==================================");
 }
 
-// Hacer pedido a caja
-function hacerPedido(nombreCliente, itemsPedido) {
-  console.log("\nCliente: " + nombreCliente);
+// ================================
+// MOSTRAR PROMOCIONES
+// ================================
+function mostrarPromociones() {
 
-  if (!itemsPedido || itemsPedido.length === 0) {
-    console.log("No seleccionaste ningun producto.");
-    return null;
-  }
+  console.log("\n===== PROMOCIONES =====");
 
-  // Mostrar resumen
-  console.log("Resumen de tu pedido:");
-  for (let i = 0; i < itemsPedido.length; i++) {
-    const producto = cocina.buscarProductoPorId(itemsPedido[i].productoId);
-    if (producto) {
-      console.log("  " + itemsPedido[i].cantidad + "x " + producto.nombre + " - $" + (producto.precio * itemsPedido[i].cantidad).toFixed(2));
+  promociones.forEach((promo, index) => {
+
+    console.log(
+      (index + 1) + ". " + promo
+    );
+
+  });
+
+  console.log("========================");
+}
+
+// ================================
+// MOSTRAR PRODUCTOS DISPONIBLES
+// ================================
+function mostrarProductosDisponibles() {
+
+  console.log("\n===== PRODUCTOS DISPONIBLES =====");
+
+  // Crear lista usando map()
+  const lista = productos.map(producto => {
+
+    return (
+      producto.nombre +
+      " - $" +
+      producto.precio.toFixed(2)
+    );
+
+  });
+
+  lista.forEach(producto => {
+
+    console.log("- " + producto);
+
+  });
+
+  console.log("=================================");
+}
+
+// ================================
+// MENU INTERACTIVO
+// ================================
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+// ================================
+// MENU PRINCIPAL
+// ================================
+function menuPrincipal() {
+
+  console.log("\n====== DELICIAS MEXICANAS ======");
+  console.log("1. Ver menu");
+  console.log("2. Ver promociones");
+  console.log("3. Ver productos disponibles");
+  console.log("4. Salir");
+  console.log("================================");
+
+  rl.question("\nSelecciona una opcion: ", function(opcion) {
+
+    switch(opcion) {
+
+      case "1":
+        mostrarMenu();
+        volverMenu();
+        break;
+
+      case "2":
+        mostrarPromociones();
+        volverMenu();
+        break;
+
+      case "3":
+        mostrarProductosDisponibles();
+        volverMenu();
+        break;
+
+      case "4":
+        console.log("\nGracias por visitar Delicias Mexicanas ");
+        rl.close();
+        break;
+
+      default:
+        console.log("\nOpcion invalida.");
+        volverMenu();
+        break;
     }
-  }
 
-  // Enviar pedido a caja
-  const pedido = caja.agregarPedido(nombreCliente, itemsPedido);
-  return pedido;
+  });
+
 }
 
-// Ver estado de un pedido
-function verEstadoPedido(pedidoId) {
-  const pedido = caja.buscarPedido(pedidoId);
+// ================================
+// VOLVER MENU
+// ================================
+function volverMenu() {
 
-  if (!pedido) {
-    console.log("No se encontro el pedido #" + pedidoId);
-    return null;
-  }
+  rl.question(
+    "\nPresiona ENTER para volver al menu...",
+    function() {
 
-  console.log("\nPedido #" + pedido.id + " - Estado: " + pedido.estado);
-  console.log("Total: $" + pedido.total.toFixed(2));
-  return pedido;
+      menuPrincipal();
+
+    }
+  );
+
 }
 
-// Exportar modulo
-module.exports = {
-  mostrarMenu,
-  hacerPedido,
-  verEstadoPedido,
-};
+// ================================
+// INICIAR SISTEMA
+// ================================
+menuPrincipal();

@@ -1,39 +1,5 @@
-// CLIENTE - Delicias Mexicanas
-// Todo en un solo archivo
-//
-
-
-const readline = require("readline");
-
-// ================================
-// PRODUCTOS
-// ================================
-const productos = [
-  {
-    id: 1,
-    nombre: "Cafe Americano",
-    precio: 45,
-    categoria: "Bebidas"
-  },
-  {
-    id: 2,
-    nombre: "Capuccino",
-    precio: 60,
-    categoria: "Bebidas"
-  },
-  {
-    id: 3,
-    nombre: "Croissant",
-    precio: 40,
-    categoria: "Panaderia"
-  },
-  {
-    id: 4,
-    nombre: "Pan Dulce",
-    precio: 25,
-    categoria: "Panaderia"
-  }
-];
+const cocina = require("./cocina");
+const caja = require("./caja");
 
 // ================================
 // PROMOCIONES
@@ -48,10 +14,11 @@ const promociones = [
 // MOSTRAR MENU
 // ================================
 function mostrarMenu() {
-
   console.log("\n===== MENU DELICIAS MEXICANAS =====");
 
-  // Obtener categorias usando map()
+  const productos = cocina.obtenerProductosDisponibles();
+
+  // Obtener categorias usando map() y Set
   const categorias = [
     ...new Set(
       productos.map(producto => producto.categoria)
@@ -60,24 +27,20 @@ function mostrarMenu() {
 
   // Mostrar categorias
   categorias.forEach(categoria => {
-
     console.log("\n" + categoria.toUpperCase());
-
+    
     const productosCategoria = productos.filter(
       producto => producto.categoria === categoria
     );
 
     productosCategoria.forEach(producto => {
-
       console.log(
         "[" + producto.id + "] " +
         producto.nombre +
         " - $" +
         producto.precio.toFixed(2)
       );
-
     });
-
   });
 
   console.log("\n==================================");
@@ -87,118 +50,43 @@ function mostrarMenu() {
 // MOSTRAR PROMOCIONES
 // ================================
 function mostrarPromociones() {
-
   console.log("\n===== PROMOCIONES =====");
-
   promociones.forEach((promo, index) => {
-
-    console.log(
-      (index + 1) + ". " + promo
-    );
-
+    console.log((index + 1) + ". " + promo);
   });
-
   console.log("========================");
 }
 
 // ================================
-// MOSTRAR PRODUCTOS DISPONIBLES
+// HACER PEDIDO
 // ================================
-function mostrarProductosDisponibles() {
-
-  console.log("\n===== PRODUCTOS DISPONIBLES =====");
-
-  // Crear lista usando map()
-  const lista = productos.map(producto => {
-
-    return (
-      producto.nombre +
-      " - $" +
-      producto.precio.toFixed(2)
-    );
-
-  });
-
-  lista.forEach(producto => {
-
-    console.log("- " + producto);
-
-  });
-
-  console.log("=================================");
+function hacerPedido(nombre, items) {
+  return caja.agregarPedido(nombre, items);
 }
 
 // ================================
-// MENU INTERACTIVO
+// VER ESTADO PEDIDO
 // ================================
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
-
-// ================================
-// MENU PRINCIPAL
-// ================================
-function menuPrincipal() {
-
-  console.log("\n====== DELICIAS MEXICANAS ======");
-  console.log("1. Ver menu");
-  console.log("2. Ver promociones");
-  console.log("3. Ver productos disponibles");
-  console.log("4. Salir");
-  console.log("================================");
-
-  rl.question("\nSelecciona una opcion: ", function(opcion) {
-
-    switch(opcion) {
-
-      case "1":
-        mostrarMenu();
-        volverMenu();
-        break;
-
-      case "2":
-        mostrarPromociones();
-        volverMenu();
-        break;
-
-      case "3":
-        mostrarProductosDisponibles();
-        volverMenu();
-        break;
-
-      case "4":
-        console.log("\nGracias por visitar Delicias Mexicanas ");
-        rl.close();
-        break;
-
-      default:
-        console.log("\nOpcion invalida.");
-        volverMenu();
-        break;
-    }
-
-  });
-
+function verEstadoPedido(id) {
+  const pedido = caja.buscarPedido(id);
+  if (pedido) {
+    console.log(`\n=== Estado del Pedido #${pedido.id} ===`);
+    console.log(`Cliente: ${pedido.cliente}`);
+    console.log(`Estado actual: ${pedido.estado}`);
+    console.log(`Subtotal: $${(pedido.subtotal || 0).toFixed(2)}`);
+    console.log(`IVA (16%): $${(pedido.iva || 0).toFixed(2)}`);
+    console.log(`Total: $${pedido.total.toFixed(2)}\n`);
+  } else {
+    console.log(`\nError: No se encontró el pedido con número #${id}.`);
+  }
 }
 
 // ================================
-// VOLVER MENU
+// EXPORTAR MODULO
 // ================================
-function volverMenu() {
-
-  rl.question(
-    "\nPresiona ENTER para volver al menu...",
-    function() {
-
-      menuPrincipal();
-
-    }
-  );
-
-}
-
-// ================================
-// INICIAR SISTEMA
-// ================================
-menuPrincipal();
+module.exports = {
+  mostrarMenu,
+  mostrarPromociones,
+  hacerPedido,
+  verEstadoPedido
+};

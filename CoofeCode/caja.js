@@ -24,7 +24,6 @@ function agregarPedido(nombreCliente, items) {
 
   // Construir los detalles del pedido
   const detalles = [];
-  let totalPedido = 0;
 
   for (let i = 0; i < items.length; i++) {
     const producto = cocina.buscarProductoPorId(items[i].productoId);
@@ -49,15 +48,20 @@ function agregarPedido(nombreCliente, items) {
       cantidad: cantidad,
       subtotal: subtotal,
     });
-
-    totalPedido += subtotal;
   }
+
+  // Calcular subtotal, IVA y total usando reduce y destructuring
+  const subtotalPedido = detalles.reduce((acc, { subtotal }) => acc + subtotal, 0);
+  const ivaPedido = subtotalPedido * 0.16; // IVA del 16%
+  const totalPedido = subtotalPedido + ivaPedido;
 
   // Crear el pedido
   const nuevoPedido = {
     id: siguientePedidoId,
     cliente: nombreCliente,
     detalles: detalles,
+    subtotal: subtotalPedido,
+    iva: ivaPedido,
     total: totalPedido,
     fecha: new Date().toLocaleString("es-MX"),
     estado: "Pendiente",
@@ -81,6 +85,8 @@ function agregarPedido(nombreCliente, items) {
     console.log(`${detalles[d].cantidad}x ${detalles[d].nombre.padEnd(22)} $${detalles[d].subtotal.toFixed(2).padStart(7)}`);
   }
 
+  console.log(`SUBTOTAL: $${nuevoPedido.subtotal.toFixed(2)}`);
+  console.log(`IVA (16%): $${nuevoPedido.iva.toFixed(2)}`);
   console.log(`TOTAL: $${nuevoPedido.total.toFixed(2)}`);
 
   return nuevoPedido;
@@ -113,7 +119,9 @@ function listarPedidos() {
       console.log(`  ${det.cantidad}x ${det.nombre.padEnd(20)} $${det.subtotal.toFixed(2).padStart(7)}`);
     }
 
-    console.log(`   Total: $${pedido.total.toFixed(2)}`);
+    console.log(`   Subtotal: $${(pedido.subtotal || 0).toFixed(2)}`);
+    console.log(`   IVA (16%): $${(pedido.iva || 0).toFixed(2)}`);
+    console.log(`   Total: $${pedido.total.toFixed(2)}\n`);
   }
 }
 

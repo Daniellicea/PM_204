@@ -18,28 +18,14 @@ function mostrarMenu() {
 
   const productos = cocina.obtenerProductosDisponibles();
 
-  // Obtener categorias usando map() y Set
-  const categorias = [
-    ...new Set(
-      productos.map(producto => producto.categoria)
-    )
-  ];
+  const categorias = [...new Set(productos.map(p => p.categoria))];
 
-  // Mostrar categorias
   categorias.forEach(categoria => {
     console.log("\n" + categoria.toUpperCase());
-    
-    const productosCategoria = productos.filter(
-      producto => producto.categoria === categoria
-    );
+    const productosCategoria = productos.filter(p => p.categoria === categoria);
 
     productosCategoria.forEach(producto => {
-      console.log(
-        "[" + producto.id + "] " +
-        producto.nombre +
-        " - $" +
-        producto.precio.toFixed(2)
-      );
+      console.log(`[${producto.id}] ${producto.nombre} - $${producto.precio.toFixed(2)}`);
     });
   });
 
@@ -58,10 +44,37 @@ function mostrarPromociones() {
 }
 
 // ================================
-// HACER PEDIDO
+// HACER PEDIDO CON ESTADOS
 // ================================
 function hacerPedido(nombre, items) {
-  return caja.agregarPedido(nombre, items);
+  const pedido = caja.agregarPedido(nombre, items);
+
+  if (!pedido) {
+    console.log("Error al crear pedido.");
+    return;
+  }
+
+  console.log(`\nPedido #${pedido.id} recibido para ${pedido.cliente}.`);
+
+  // Flujo asincrónico de estados
+  setTimeout(() => {
+    pedido.estado = "Preparando";
+    verEstadoPedido(pedido.id);
+  }, 2000);
+
+  setTimeout(() => {
+    pedido.estado = "Empacando";
+    verEstadoPedido(pedido.id);
+  }, 4000);
+
+  setTimeout(() => {
+    // Aquí decides si se entrega o se cancela
+    const entregado = Math.random() > 0.2; // 80% entregado, 20% cancelado
+    pedido.estado = entregado ? "Entregado" : "Cancelado";
+    verEstadoPedido(pedido.id);
+  }, 6000);
+
+  return pedido;
 }
 
 // ================================

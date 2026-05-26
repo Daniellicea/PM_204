@@ -133,19 +133,19 @@ function listarPedidos() {
       console.log(`  ${det.cantidad}x ${det.nombre.padEnd(20)} $${det.subtotal.toFixed(2).padStart(7)}`);
     }
 
-    console.log(`   Subtotal: $${(pedido.subtotal || 0).toFixed(2)}`);
-    console.log(`   IVA (16%): $${(pedido.iva || 0).toFixed(2)}`);
-    console.log(`   Total: $${pedido.total.toFixed(2)}\n`);
+    console.log(`Subtotal: $${(pedido.subtotal || 0).toFixed(2)}`);
+    console.log(`IVA (16%): $${(pedido.iva || 0).toFixed(2)}`);
+    console.log(`Total: $${pedido.total.toFixed(2)}\n`);
   }
 }
 
 
 //  Función: Total Acumulado
 function mostrarTotalAcumulado() {
-  console.log("        TOTAL ACUMULADO - CoofeCode             ");
+  console.log("TOTAL ACUMULADO - CoofeCode             ");
   console.log(`  `);
-  console.log(`         Total de pedidos:  ${pedidos.length}`);
-  console.log(`         Ventas acumuladas: $${totalAcumulado.toFixed(2)}`);
+  console.log(`Total de pedidos:  ${pedidos.length}`);
+  console.log(`Ventas acumuladas: $${totalAcumulado.toFixed(2)}`);
   console.log(`  `);
   return totalAcumulado;
 }

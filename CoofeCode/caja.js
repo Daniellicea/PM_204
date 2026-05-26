@@ -89,6 +89,20 @@ function agregarPedido(nombreCliente, items) {
   console.log(`IVA (16%): $${nuevoPedido.iva.toFixed(2)}`);
   console.log(`TOTAL: $${nuevoPedido.total.toFixed(2)}`);
 
+  // Cambiar estado a Preparando
+  cambiarEstadoPedido(nuevoPedido.id, "Preparando");
+
+  // Comunicación con cocina mediante Callbacks
+  cocina.prepararPedido(nuevoPedido.id, (error, mensajeExito) => {
+    if (error) {
+      console.log(`\n ALERTA DE COCINA: ${error}`);
+      cambiarEstadoPedido(nuevoPedido.id, "Cancelado");
+    } else {
+      console.log(`\n NOTIFICACIÓN DE COCINA: ${mensajeExito}`);
+      cambiarEstadoPedido(nuevoPedido.id, "Listo");
+    }
+  });
+
   return nuevoPedido;
 }
 

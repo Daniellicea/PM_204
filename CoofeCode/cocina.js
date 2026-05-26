@@ -180,6 +180,25 @@ function encontrarPrimerPostre() {
   );
 }
 
+// --- Callbacks: Comunicación con Caja ---
+function prepararPedido(pedidoId, callback) {
+  // Primera parte: mostrar que se está preparando
+  console.log(`\n [Cocina] Se está preparando el pedido #${pedidoId}...`);
+  
+  // Simulamos tiempo de preparación
+  setTimeout(() => {
+    const aleatorio = Math.random();
+    
+    if (aleatorio < 0.6) {
+      // Éxito: sin error, enviamos el mensaje de éxito (ya está)
+      callback(null, `El pedido #${pedidoId} ya está listo.`);
+    } else {
+      // Error: pasamos el error al callback (le falta / cancelado)
+      callback(`El pedido #${pedidoId} fue cancelado (le falta producto/ingredientes o hubo error de cocina).`);
+    }
+  }, 4000); // 4 segundos de espera
+}
+
 // Exportar modulo
 module.exports = {
   catalogo,
@@ -195,6 +214,7 @@ module.exports = {
   buscarProductosCaros,
   buscarBebidas,
   buscarPostres,
-  encontrarPrimerPostre
+  encontrarPrimerPostre,
+  prepararPedido
 };
-
+

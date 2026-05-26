@@ -45,6 +45,10 @@ async function menuCocina() {
   console.log("  3. Actualizar producto");
   console.log("  4. Eliminar producto");
   console.log("  5. Cambiar disponibilidad");
+  console.log("  6. Buscar productos baratos");
+  console.log("  7. Buscar productos caros");
+  console.log("  8. Buscar bebidas");
+  console.log("  9. Buscar postres");
   console.log("  0. Volver");
   console.log("----------------------------------------");
   const opcion = await pregunta("Selecciona una opcion: ");
@@ -96,6 +100,22 @@ async function menuCocina() {
       cocina.cambiarDisponibilidad(id, estado.toLowerCase() === "s");
       break;
     }
+    case "6":
+      console.log("\n--- Productos Baratos ---");
+      console.log(cocina.buscarProductosBaratos());
+      break;
+    case "7":
+      console.log("\n--- Productos Caros ---");
+      console.log(cocina.buscarProductosCaros());
+      break;
+    case "8":
+      console.log("\n--- Bebidas ---");
+      console.log(cocina.buscarBebidas());
+      break;
+    case "9":
+      console.log("\n--- Postres ---");
+      console.log(cocina.buscarPostres());
+      break;
     case "0": return;
     default: console.log("Opcion no valida.");
   }

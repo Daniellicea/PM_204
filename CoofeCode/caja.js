@@ -174,6 +174,48 @@ function buscarPedido(pedidoId) {
   return null;
 }
 
+//  Función: Calcular Compra (subtotal, IVA y total)
+//  Usa: reduce() con destructuring, IVA del 16%
+function calcularCompra(productos) {
+  // Validar que haya productos
+  if (!productos || productos.length === 0) {
+    console.log("\n  error: La compra debe tener al menos un producto.");
+    return null;
+  }
+
+  // Calcular subtotal usando reduce() con destructuring
+  const subtotal = productos.reduce((acumulador, { nombre, precio, cantidad }) => {
+    // Validar que el producto tenga datos válidos
+    if (!nombre || precio <= 0 || cantidad <= 0) {
+      console.log(`\n  error: Producto inválido → ${nombre || "sin nombre"}`);
+      return acumulador;
+    }
+
+    const subtotalProducto = precio * cantidad;
+    console.log(`  ${cantidad}x ${nombre.padEnd(22)} $${subtotalProducto.toFixed(2).padStart(7)}`);
+    return acumulador + subtotalProducto;
+  }, 0);
+
+  // Calcular IVA (16%)
+  const iva = subtotal * 0.16;
+
+  // Calcular total
+  const total = subtotal + iva;
+
+  // Mostrar resumen
+  console.log("              TICKET DE COMPRA - CoofeCode             ");
+  console.log(`         Subtotal:  $${subtotal.toFixed(2)}`);
+  console.log(`         IVA (16%): $${iva.toFixed(2)}`);
+  console.log(`         TOTAL:     $${total.toFixed(2)}`);
+
+  // Retornar objeto con subtotal, iva y total
+  return {
+    subtotal: parseFloat(subtotal.toFixed(2)),
+    iva: parseFloat(iva.toFixed(2)),
+    total: parseFloat(total.toFixed(2)),
+  };
+}
+
 //  Exportar 
 module.exports = {
   pedidos,
@@ -182,4 +224,5 @@ module.exports = {
   mostrarTotalAcumulado,
   cambiarEstadoPedido,
   buscarPedido,
+  calcularCompra,
 };

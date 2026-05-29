@@ -1,4 +1,5 @@
-// --- Catálogo de productos (array principal) ---
+// cocina.js
+
 const catalogo = [
   { id: 1, nombre: "Cafe Americano", categoria: "Bebidas Calientes", precio: 35.00, disponible: true },
   { id: 2, nombre: "Cappuccino", categoria: "Bebidas Calientes", precio: 55.00, disponible: true },
@@ -14,162 +15,75 @@ const catalogo = [
   { id: 12, nombre: "Panini Caprese", categoria: "Comida", precio: 80.00, disponible: true },
 ];
 
-// Contador para IDs
 let siguienteId = 13;
 
-// CREATE - Agregar producto
+// CREATE
 function agregarProducto(nombre, categoria, precio) {
-  const nuevoProducto = {
-    id: siguienteId,
-    nombre: nombre,
-    categoria: categoria,
-    precio: precio,
-    disponible: true,
+  const nuevo = {
+    id: siguienteId++,
+    nombre,
+    categoria,
+    precio,
+    disponible: true
   };
 
-  catalogo.push(nuevoProducto);
-
-  console.log(
-    `\nProducto agregado: "${nombre}" (ID: ${nuevoProducto.id}) - $${precio.toFixed(2)}`
-  );
-
-  siguienteId++;
-
-  return nuevoProducto;
+  catalogo.push(nuevo);
+  return nuevo;
 }
 
-// READ - Listar productos
+// READ
 function listarCatalogo() {
-  console.log("\n========== CATALOGO DE COCINA ==========\n");
+  console.log("\nCATALOGO:");
 
-  for (let i = 0; i < catalogo.length; i++) {
-    const producto = catalogo[i];
-
-    console.log(
-      `[${producto.id}] ${producto.nombre} | ${producto.categoria} | $${producto.precio.toFixed(2)} | ${producto.disponible ? "Disponible" : "Agotado"}`
-    );
-  }
+  catalogo.forEach(p => {
+    console.log(`[${p.id}] ${p.nombre} | ${p.categoria} | $${p.precio.toFixed(2)}`);
+  });
 }
 
-// Buscar producto por ID
+// FIND
 function buscarProductoPorId(id) {
-  for (let i = 0; i < catalogo.length; i++) {
-    if (catalogo[i].id === id) {
-      return catalogo[i];
-    }
-  }
-
-  return null;
+  return catalogo.find(p => p.id === id);
 }
 
-// Buscar productos por categoria
-function buscarProductosPorCategoria(categoria) {
-  const resultados = [];
-
-  for (let i = 0; i < catalogo.length; i++) {
-    if (
-      catalogo[i].categoria.toLowerCase() === categoria.toLowerCase()
-    ) {
-      resultados.push(catalogo[i]);
-    }
-  }
-
-  return resultados;
-}
-
-// UPDATE - Actualizar producto
-function actualizarProducto(id, nuevosDatos) {
-  const producto = buscarProductoPorId(id);
-
-  if (!producto) {
-    console.log(`\nError: No se encontro producto con ID ${id}`);
-    return null;
-  }
-
-  if (nuevosDatos.nombre !== undefined) {
-    producto.nombre = nuevosDatos.nombre;
-  }
-
-  if (nuevosDatos.categoria !== undefined) {
-    producto.categoria = nuevosDatos.categoria;
-  }
-
-  if (nuevosDatos.precio !== undefined) {
-    producto.precio = nuevosDatos.precio;
-  }
-
-  if (nuevosDatos.disponible !== undefined) {
-    producto.disponible = nuevosDatos.disponible;
-  }
-
-  console.log(
-    `\nProducto actualizado: [${id}] ${producto.nombre} - $${producto.precio.toFixed(2)}`
-  );
-
-  return producto;
-}
-
-// Cambiar disponibilidad
-function cambiarDisponibilidad(id, disponible) {
-  return actualizarProducto(id, { disponible: disponible });
-}
-
-// DELETE - Eliminar producto
-function eliminarProducto(id) {
-  for (let i = 0; i < catalogo.length; i++) {
-    if (catalogo[i].id === id) {
-
-      const eliminado = catalogo.splice(i, 1)[0];
-
-      console.log(
-        `\nProducto eliminado: "${eliminado.nombre}" (ID: ${id})`
-      );
-
-      return eliminado;
-    }
-  }
-
-  console.log(`\nError: No se encontro producto con ID ${id}`);
-
-  return null;
-}
-
-// Obtener productos disponibles
+// FILTER
 function obtenerProductosDisponibles() {
-  const disponibles = [];
-
-  for (let i = 0; i < catalogo.length; i++) {
-    if (catalogo[i].disponible) {
-      disponibles.push(catalogo[i]);
-    }
-  }
-
-  return disponibles;
+  return catalogo.filter(p => p.disponible);
 }
 
-// Exportar modulo
+function buscarProductosPorCategoria(categoria) {
+  return catalogo.filter(
+    p => p.categoria.toLowerCase() === categoria.toLowerCase()
+  );
+}
+
+// UPDATE
+function actualizarProducto(id, datos) {
+  const p = buscarProductoPorId(id);
+  if (!p) return null;
+
+  if (datos.nombre !== undefined) p.nombre = datos.nombre;
+  if (datos.categoria !== undefined) p.categoria = datos.categoria;
+  if (datos.precio !== undefined) p.precio = datos.precio;
+  if (datos.disponible !== undefined) p.disponible = datos.disponible;
+
+  return p;
+}
+
+// DELETE
+function eliminarProducto(id) {
+  const index = catalogo.findIndex(p => p.id === id);
+  if (index === -1) return null;
+
+  return catalogo.splice(index, 1)[0];
+}
+
 module.exports = {
   catalogo,
   agregarProducto,
   listarCatalogo,
   buscarProductoPorId,
+  obtenerProductosDisponibles,
   buscarProductosPorCategoria,
   actualizarProducto,
-  cambiarDisponibilidad,
-  eliminarProducto,
-  obtenerProductosDisponibles,
+  eliminarProducto
 };
-
-// PRUEBAS
-
-listarCatalogo();
-
-agregarProducto("Pizza", "Comida", 120);
-
-listarCatalogo();
-
-actualizarProducto(1, { precio: 40 });
-
-eliminarProducto(3);
-
-listarCatalogo();

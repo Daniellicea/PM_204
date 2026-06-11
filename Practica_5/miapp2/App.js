@@ -10,24 +10,12 @@ import {Perfil} from './components/Perfil';
 export default function App() {
   return (
     <View style={styles.container}>
-
-      <Image source={require('./assets/wave.png')} style={{ width: 200, height: 200 }} />
-      <Text>HOLA MUNDO RN!!!!!!!!!!!!!!!</Text>
-
-
-
-      <Text>-----------------------------</Text>
-      <Saludo/>
-      <Saludo></Saludo>
-
       
-      <Text>-----------------------------</Text>
 
-      <Saludo2/>
+      <Perfil style={styles.TerjetaVerde} nombre=" Daniel" carrera="Ingeniería" materia="Programacion movil" cuatri="9no" />
+      <Perfil style={styles.TarjetaRoja} nombre="Nancy" carrera="Medicina" materia="Anatomía" cuatri="6to" />
 
-      <Text>-----------------------------</Text>
-
-      <Perfil/>
+      <Perfil style={styles.TarjetaRoja} nombre="Nancy" carrera="Medicina" materia="Anatomía" cuatri="6to" />
 
       <StatusBar style="auto" />
     </View>
@@ -36,10 +24,16 @@ export default function App() {
 
 /* Zona 3: estilos Y POSICIONAMIENTO*/
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+ container: {
+  flex: 1,
+  flexDirection: 'row',
+  justifyContent: 'space-evenly',
+  alignItems: 'center',
+},
+  TerjetaVerde: {
+    backgroundColor: 'green',
   },
+  TarjetaRoja: {
+    backgroundColor: 'red',
+  }
 });

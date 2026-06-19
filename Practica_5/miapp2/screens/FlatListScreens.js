@@ -1,26 +1,58 @@
-/*  Zona 1: importaciones de componetes y archivos  */
+/* Zona1: Importaciones componentes y archivos*/
+import { View, Text, StyleSheet, FlatList, SectionList } from 'react-native';
 
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Image } from 'react-native';
+/* Zona2: Main - Componentes*/
+export default function FlatListScreen() {
 
+  const frutas = [
+    { id: '1', nombre: 'Manzana' },
+    { id: '2', nombre: 'Plátano' },
+    { id: '3', nombre: 'Naranja' },
+    { id: '4', nombre: 'Mango' },
+  ];
 
-/* Zona 2: main - componentes */
-export default function FlatListScreens() {
+  const tareas = [
+    { titulo: 'Mañana', data: ['Hacer ejercicio', 'Desayunar'] },
+    { titulo: 'Tarde', data: ['Estudiar', 'Hacer tarea'] },
+  ];
+
   return (
     <View style={styles.container}>
-        <Text>Aqui la practica de SafeArea view</Text>
 
-      <StatusBar style="auto" />
+      <Text style={styles.titulo}>FlatList</Text>
+      <FlatList
+        data={frutas}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.tarjeta}>
+            <Text style={styles.texto}>{item.nombre}</Text>
+          </View>
+        )}
+      />
+
+      <Text style={styles.titulo}>SectionList</Text>
+      <SectionList
+        sections={tareas}
+        keyExtractor={(item, index) => item + index}
+        renderItem={({ item }) => (
+          <View style={styles.tarjeta}>
+            <Text style={styles.texto}>{item}</Text>
+          </View>
+        )}
+        renderSectionHeader={({ section }) => (
+          <Text style={styles.seccionTitulo}>{section.titulo}</Text>
+        )}
+      />
+
     </View>
   );
 }
 
-/* Zona 3: estilos Y POSICIONAMIENTO*/
+/* Zona3: Estilos y Posicionamientos*/
 const styles = StyleSheet.create({
- container: {
-  flex: 1,
-  flexDirection: 'column-reverse',
-  justifyContent: 'center',
-  alignItems: 'center',
-},
+  container: { flex: 1, backgroundColor: '#fff', padding: 10, width: '100%' },
+  titulo: { fontSize: 18, fontWeight: '700', backgroundColor: '#111', color: '#fff', padding: 6, marginTop: 10 },
+  seccionTitulo: { fontSize: 15, fontWeight: '700', backgroundColor: '#e9ecef', padding: 6, marginTop: 6 },
+  tarjeta: { backgroundColor: '#f4f4f4', padding: 10, marginBottom: 6, borderRadius: 6 },
+  texto: { fontSize: 14, color: '#222' },
 });

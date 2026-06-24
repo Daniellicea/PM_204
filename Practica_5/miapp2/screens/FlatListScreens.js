@@ -1,5 +1,5 @@
-/* Zona1: Importaciones componentes y archivos*/
-import { View, Text, StyleSheet, FlatList, SectionList } from 'react-native';
+/* Zona1: Importaciones componentes y archivos */
+import { View, Text, StyleSheet, FlatList, SectionList, ScrollView} from 'react-native';
 
 /* Zona2: Main - Componentes*/
 export default function FlatListScreen() {
@@ -17,12 +17,13 @@ export default function FlatListScreen() {
   ];
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
 
       <Text style={styles.titulo}>FlatList</Text>
       <FlatList
         data={frutas}
         keyExtractor={(item) => item.id}
+        scrollEnabled={false}
         renderItem={({ item }) => (
           <View style={styles.tarjeta}>
             <Text style={styles.texto}>{item.nombre}</Text>
@@ -33,7 +34,8 @@ export default function FlatListScreen() {
       <Text style={styles.titulo}>SectionList</Text>
       <SectionList
         sections={tareas}
-        keyExtractor={(item, index) => item + index}
+        keyExtractor={(item, index) => index.toString()}
+        scrollEnabled={false}
         renderItem={({ item }) => (
           <View style={styles.tarjeta}>
             <Text style={styles.texto}>{item}</Text>
@@ -44,13 +46,13 @@ export default function FlatListScreen() {
         )}
       />
 
-    </View>
+    </ScrollView>
   );
 }
 
 /* Zona3: Estilos y Posicionamientos*/
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', padding: 10, width: '100%' },
+  container: { flex: 1, backgroundColor: '#fff', padding: 10 },
   titulo: { fontSize: 18, fontWeight: '700', backgroundColor: '#111', color: '#fff', padding: 6, marginTop: 10 },
   seccionTitulo: { fontSize: 15, fontWeight: '700', backgroundColor: '#e9ecef', padding: 6, marginTop: 6 },
   tarjeta: { backgroundColor: '#f4f4f4', padding: 10, marginBottom: 6, borderRadius: 6 },

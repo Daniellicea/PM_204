@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderRadius: 6,
     padding: 12,
-  },
+  }, //
   multiline: {
     height: 90,
     textAlignVertical: 'top'

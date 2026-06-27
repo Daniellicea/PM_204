@@ -13,38 +13,46 @@ export default function FlatListScreen() {
 
   const tareas = [
     { titulo: 'Mañana', data: ['Hacer ejercicio', 'Desayunar'] },
+    
     { titulo: 'Tarde', data: ['Estudiar', 'Hacer tarea'] },
   ];
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={ styles.container }>
 
-      <Text style={styles.titulo}>FlatList</Text>
-      <FlatList
-        data={frutas}
-        keyExtractor={(item) => item.id}
-        scrollEnabled={false}
-        renderItem={({ item }) => (
-          <View style={styles.tarjeta}>
-            <Text style={styles.texto}>{item.nombre}</Text>
-          </View>
-        )}
-      />
+      <Text style={ styles.titulo }>FlatList</Text>
+        <FlatList
+          data={ frutas }
+          keyExtractor={ (item) => item.id }
+          scrollEnabled={ false }
+          renderItem={ ( { item } ) => (
+
+            <View style={ styles.tarjeta }>
+              <Text style={ styles.texto }> { item.nombre }</Text>
+            </View>
+            )
+          }
+        />
 
       <Text style={styles.titulo}>SectionList</Text>
-      <SectionList
-        sections={tareas}
-        keyExtractor={(item, index) => index.toString()}
-        scrollEnabled={false}
-        renderItem={({ item }) => (
-          <View style={styles.tarjeta}>
-            <Text style={styles.texto}>{item}</Text>
-          </View>
-        )}
-        renderSectionHeader={({ section }) => (
-          <Text style={styles.seccionTitulo}>{section.titulo}</Text>
-        )}
-      />
+        <SectionList
+
+          sections={ tareas }
+          keyExtractor={ (item , index) => index.toString() }
+          scrollEnabled={false}
+          
+          renderItem={ ( { item } ) => (
+            <View style={ styles.tarjeta }>
+              <Text style={ styles.texto }>{ item }</Text>
+            </View>
+            )
+          }
+
+          renderSectionHeader={ ( { section } ) => (
+            <Text style= { styles.seccionTitulo } > { section.titulo } </Text>
+            )
+         }
+        />
 
     </ScrollView>
   );

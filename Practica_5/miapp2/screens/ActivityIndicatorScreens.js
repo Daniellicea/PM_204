@@ -13,7 +13,7 @@ import {
   Platform,
   ScrollView,
   Image
-} from 'react-native';
+} from 'react-native';  
 
 
 // COMPONENTE PRINCIPAL

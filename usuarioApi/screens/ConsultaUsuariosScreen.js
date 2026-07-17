@@ -1,21 +1,48 @@
-import React from 'react';
-import {SafeAreaView,View,Text,FlatList,StyleSheet,
-} from 'react-native';
+import { View, Text, FlatList, StyleSheet, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useState, useCallback } from 'react';
+import { useFocusEffect } from 'expo-router';
 
 export default function ConsultaUsuariosScreen() {
 
-  const usuarios = [
-    { id: '1', nombre: 'Isay Guerra', edad: 22 },
-    { id: '2', nombre: 'Ana López', edad: 19 },
-    { id: '3', nombre: 'Carlos Gonzalez', edad: 25 },
-    { id: '4', nombre: 'Bjork Guerra', edad: 21 },
-    { id: '5', nombre: 'Luisa Martínez', edad: 28 },
-  ];
+  const [usuarios, setUsuarios] = useState([]);
+
+  const obtenerUsuarios = async () => {
+    try {
+
+      const url = Platform.OS === 'web'
+        ? 'http://localhost:5000/v1/usuarios/'
+        : 'http://192.168.100.43:5000/v1/usuarios/';
+
+      console.log("Petición a:", url);
+
+      const respuesta = await fetch(url);
+
+      const datos = await respuesta.json();
+
+      console.log("Respuesta API:", datos);
+
+      setUsuarios(datos.usuarios);
+
+    } catch (error) {
+      console.error("Error al obtener usuarios:", error);
+    }
+  };
+
+
+  useFocusEffect(
+    useCallback(() => {
+      obtenerUsuarios();
+    }, [])
+  );
+
 
   const renderTarjeta = ({ item }) => (
     <View style={styles.card}>
 
-      <Text style={styles.nombre}>{item.nombre}</Text>
+      <Text style={styles.nombre}>
+        {item.nombre}
+      </Text>
 
       <View style={styles.linea}></View>
 
@@ -26,6 +53,7 @@ export default function ConsultaUsuariosScreen() {
     </View>
   );
 
+
   return (
 
     <SafeAreaView style={styles.container}>
@@ -34,18 +62,20 @@ export default function ConsultaUsuariosScreen() {
         Lista de Usuarios
       </Text>
 
+
       <FlatList
         data={usuarios}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={renderTarjeta}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 20 }}
       />
 
     </SafeAreaView>
+
   );
-  
 }
+
 
 const styles = StyleSheet.create({
 
@@ -55,6 +85,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
 
+
   titulo: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -62,6 +93,7 @@ const styles = StyleSheet.create({
     color: '#1F2937',
     marginBottom: 20,
   },
+
 
   card: {
     backgroundColor: '#FFFFFF',
@@ -79,17 +111,20 @@ const styles = StyleSheet.create({
     },
   },
 
+
   nombre: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#2563EB',
   },
 
+
   linea: {
     height: 1,
     backgroundColor: '#E5E7EB',
     marginVertical: 10,
   },
+
 
   info: {
     fontSize: 16,

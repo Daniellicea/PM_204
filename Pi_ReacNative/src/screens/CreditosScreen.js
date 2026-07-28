@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { COLORS, FONTS, SPACING, RADIUS } from '../theme/colors';
 
@@ -59,12 +60,89 @@ const estrategias = [
   },
 ];
 
-export default function CreditosScreen() {
+export default function CreditosScreen({ route }) {
+  const userId = route?.params?.userId || null;
   const [selectedStrategy, setSelectedStrategy] = useState(0);
+  const [apiCreditos, setApiCreditos] = useState([]);
+  const [apiInstituciones, setApiInstituciones] = useState([]);
+  const [totalDeuda, setTotalDeuda] = useState(0);
+  const [totalLimite, setTotalLimite] = useState(0);
 
-  const totalDeuda = 24500;
-  const totalLimite = 75000;
-  const utilizacion = Math.round((totalDeuda / totalLimite) * 100);
+  useEffect(() => {
+    let isMounted = true;
+    const fetchData = async () => {
+      if (!userId) return;
+      try {
+        const baseUrl = Platform.OS === 'web' ? 'http://localhost:80' : 'http://10.0.0.4:80';
+        
+        const [creditosRes, instRes] = await Promise.all([
+          fetch(`${baseUrl}/v1/creditos/usuario/${userId}`),
+          fetch(`${baseUrl}/v1/instituciones`)
+        ]);
+
+        const credData = await creditosRes.json();
+        const instData = await instRes.json();
+
+        if (isMounted) {
+          if (instData.instituciones) {
+            setApiInstituciones(instData.instituciones);
+          }
+          if (credData.creditos) {
+            let deuda = 0;
+            let limite = 0;
+            const mappedCreditos = credData.creditos.map(c => {
+              const inst = instData.instituciones?.find(i => i.id === c.institucion_id);
+              deuda += c.deuda_actual;
+              limite += c.limite_credito;
+              return {
+                ...c,
+                institucion: inst ? inst.nombre : 'Otra Institución',
+                icon: '🏦', // Default icon
+                deudaStr: `$${c.deuda_actual.toLocaleString()}`,
+                limiteStr: `$${c.limite_credito.toLocaleString()}`,
+                pagoMinStr: `$${c.pago_minimo.toLocaleString()}`,
+                tasaStr: `${c.tasa_anual}%`
+              };
+            });
+            setApiCreditos(mappedCreditos);
+            setTotalDeuda(deuda);
+            setTotalLimite(limite);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching creditos:", err);
+      }
+    };
+    fetchData();
+    return () => { isMounted = false; };
+  }, [userId]);
+
+  const utilizacion = totalLimite > 0 ? Math.round((totalDeuda / totalLimite) * 100) : 0;
+
+  // Compute dynamic strategies
+  const avalancha = [...apiCreditos].sort((a, b) => b.tasa_anual - a.tasa_anual);
+  const bolaNieve = [...apiCreditos].sort((a, b) => a.deuda_actual - b.deuda_actual);
+
+  const dynamicEstrategias = [
+    {
+      nombre: 'Método Avalancha',
+      icon: '🏔️',
+      desc: 'Paga primero la deuda con la tasa más alta. Ahorras más en intereses a largo plazo.',
+      orden: avalancha.map(c => `${c.institucion} (${c.tasaStr})`),
+      ahorro: 'Cálculo pendiente',
+      color: COLORS.cyan,
+      colorSoft: COLORS.cyanSoft,
+    },
+    {
+      nombre: 'Método Bola de Nieve',
+      icon: '⛄',
+      desc: 'Paga primero la deuda más pequeña. Da motivación rápida al eliminar deudas.',
+      orden: bolaNieve.map(c => `${c.institucion} (${c.deudaStr})`),
+      ahorro: 'Cálculo pendiente',
+      color: COLORS.purpleLight,
+      colorSoft: COLORS.purpleSoft,
+    },
+  ];
 
   return (
     <ScrollView
@@ -111,33 +189,37 @@ export default function CreditosScreen() {
 
       {/* Credit cards */}
       <Text style={styles.sectionTitle}>🏦 Créditos Activos</Text>
-      {mockCreditos.map((c, i) => (
-        <View key={i} style={styles.creditCard}>
-          <View style={styles.creditHeader}>
-            <View style={styles.creditIcon}>
-              <Text style={{ fontSize: 24 }}>{c.icon}</Text>
+      {apiCreditos.length === 0 ? (
+        <Text style={{color: COLORS.textMuted, textAlign: 'center', marginVertical: 20}}>No hay créditos registrados.</Text>
+      ) : (
+        apiCreditos.map((c, i) => (
+          <View key={c.id || i} style={styles.creditCard}>
+            <View style={styles.creditHeader}>
+              <View style={styles.creditIcon}>
+                <Text style={{ fontSize: 24 }}>{c.icon}</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.creditInst}>{c.institucion}</Text>
+                <Text style={styles.creditTasa}>Tasa: {c.tasaStr}</Text>
+              </View>
+              <View style={styles.creditDeudaBox}>
+                <Text style={styles.creditDeuda}>{c.deudaStr}</Text>
+                <Text style={styles.creditDeudaLabel}>Deuda</Text>
+              </View>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.creditInst}>{c.institucion}</Text>
-              <Text style={styles.creditTasa}>Tasa: {c.tasa}</Text>
-            </View>
-            <View style={styles.creditDeudaBox}>
-              <Text style={styles.creditDeuda}>{c.deuda}</Text>
-              <Text style={styles.creditDeudaLabel}>Deuda</Text>
+            <View style={styles.creditDetails}>
+              <View style={styles.creditDetailItem}>
+                <Text style={styles.creditDetailLabel}>Pago Mínimo</Text>
+                <Text style={styles.creditDetailValue}>{c.pagoMinStr}</Text>
+              </View>
+              <View style={styles.creditDetailItem}>
+                <Text style={styles.creditDetailLabel}>Límite</Text>
+                <Text style={styles.creditDetailValue}>{c.limiteStr}</Text>
+              </View>
             </View>
           </View>
-          <View style={styles.creditDetails}>
-            <View style={styles.creditDetailItem}>
-              <Text style={styles.creditDetailLabel}>Pago Mínimo</Text>
-              <Text style={styles.creditDetailValue}>{c.pagoMin}</Text>
-            </View>
-            <View style={styles.creditDetailItem}>
-              <Text style={styles.creditDetailLabel}>Límite</Text>
-              <Text style={styles.creditDetailValue}>{c.limite}</Text>
-            </View>
-          </View>
-        </View>
-      ))}
+        ))
+      )}
 
       {/* Add credit button */}
       <TouchableOpacity style={styles.btnAdd}>
@@ -147,47 +229,40 @@ export default function CreditosScreen() {
       {/* Strategies */}
       <Text style={styles.sectionTitle}>🎯 Estrategias de Pago</Text>
       <View style={styles.strategyTabs}>
-        {estrategias.map((e, i) => (
+        {dynamicEstrategias.map((e, i) => (
           <TouchableOpacity
             key={i}
             style={[
               styles.strategyTab,
-              selectedStrategy === i && { backgroundColor: e.colorSoft, borderColor: e.color },
+              selectedStrategy === i && { backgroundColor: e.colorSoft, borderColor: e.color }
             ]}
             onPress={() => setSelectedStrategy(i)}
           >
-            <Text style={styles.strategyTabIcon}>{e.icon}</Text>
-            <Text
-              style={[
-                styles.strategyTabText,
-                selectedStrategy === i && { color: e.color },
-              ]}
-            >
-              {e.nombre}
+            <Text style={{ fontSize: 20, marginBottom: 4 }}>{e.icon}</Text>
+            <Text style={[styles.strategyTabTitle, selectedStrategy === i && { color: e.color }]}>
+              {e.nombre.split(' ')[1]}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      <View style={[styles.strategyCard, { borderColor: estrategias[selectedStrategy].color + '40' }]}>
-        <Text style={styles.strategyDesc}>{estrategias[selectedStrategy].desc}</Text>
-
-        <Text style={styles.strategyOrderTitle}>Orden de pago sugerido:</Text>
-        {estrategias[selectedStrategy].orden.map((item, i) => (
-          <View key={i} style={styles.strategyOrderItem}>
-            <View style={[styles.strategyOrderNum, { backgroundColor: estrategias[selectedStrategy].colorSoft }]}>
-              <Text style={[styles.strategyOrderNumText, { color: estrategias[selectedStrategy].color }]}>
-                {i + 1}
-              </Text>
+      <View style={styles.strategyContent}>
+        <Text style={styles.strategyDesc}>{dynamicEstrategias[selectedStrategy].desc}</Text>
+        
+        <Text style={styles.strategyOrdenTitle}>Orden de Pago Sugerido:</Text>
+        {dynamicEstrategias[selectedStrategy].orden.map((item, idx) => (
+          <View key={idx} style={styles.ordenItem}>
+            <View style={[styles.ordenNum, { backgroundColor: dynamicEstrategias[selectedStrategy].colorSoft }]}>
+              <Text style={[styles.ordenNumText, { color: dynamicEstrategias[selectedStrategy].color }]}>{idx + 1}</Text>
             </View>
-            <Text style={styles.strategyOrderText}>{item}</Text>
+            <Text style={styles.ordenText}>{item}</Text>
           </View>
         ))}
 
-        <View style={[styles.strategyAhorro, { backgroundColor: estrategias[selectedStrategy].colorSoft }]}>
+        <View style={[styles.strategyAhorro, { backgroundColor: dynamicEstrategias[selectedStrategy].colorSoft }]}>
           <Text style={styles.strategyAhorroLabel}>Ahorro estimado en intereses:</Text>
-          <Text style={[styles.strategyAhorroValue, { color: estrategias[selectedStrategy].color }]}>
-            {estrategias[selectedStrategy].ahorro}
+          <Text style={[styles.strategyAhorroValue, { color: dynamicEstrategias[selectedStrategy].color }]}>
+            {dynamicEstrategias[selectedStrategy].ahorro}
           </Text>
         </View>
 

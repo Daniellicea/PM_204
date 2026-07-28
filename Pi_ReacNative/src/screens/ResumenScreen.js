@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Animated,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { COLORS, FONTS, SPACING, RADIUS } from '../theme/colors';
 
@@ -25,26 +26,71 @@ const tips = [
   'Invertir desde joven, aunque sea poco, aprovecha el interés compuesto a tu favor.',
 ];
 
-export default function ResumenScreen({ navigation }) {
+export default function ResumenScreen({ navigation, route }) {
+  const userName = route?.params?.userName || 'Usuario';
+  const userId = route?.params?.userId || null;
   const [tipIdx, setTipIdx] = useState(0);
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
   // Counter animation values
   const [deudaCount, setDeudaCount] = useState(0);
   const [gastosCount, setGastosCount] = useState(0);
+  
+  // Real data values
+  const [creditosActivos, setCreditosActivos] = useState(0);
+  const [utilizacion, setUtilizacion] = useState(0);
 
   useEffect(() => {
-    // Animate counters
-    const targetDeuda = 24500;
-    const targetGastos = 6979;
-    let frame = 0;
-    const totalFrames = 60;
-    const timer = setInterval(() => {
-      frame++;
-      setDeudaCount(Math.round((frame / totalFrames) * targetDeuda));
-      setGastosCount(Math.round((frame / totalFrames) * targetGastos));
-      if (frame >= totalFrames) clearInterval(timer);
-    }, 25);
+    let isMounted = true;
+    
+    const fetchData = async () => {
+      if (!userId) return;
+      
+      try {
+        const baseUrl = Platform.OS === 'web' ? 'http://localhost:80' : 'http://10.0.0.4:80';
+        
+        // Fetch Gastos
+        const gastosRes = await fetch(`${baseUrl}/v1/gastos/usuario/${userId}`);
+        const gastosData = await gastosRes.json();
+        const totalGastos = gastosData.monto_total || 0;
+        
+        // Fetch Creditos
+        const creditosRes = await fetch(`${baseUrl}/v1/creditos/usuario/${userId}`);
+        const creditosData = await creditosRes.json();
+        
+        let totalDeuda = 0;
+        let totalLimite = 0;
+        if (creditosData.creditos && creditosData.creditos.length > 0) {
+          creditosData.creditos.forEach(c => {
+            totalDeuda += c.deuda_actual;
+            totalLimite += c.limite_credito;
+          });
+        }
+        
+        if (isMounted) {
+          setCreditosActivos(creditosData.total || 0);
+          setUtilizacion(totalLimite > 0 ? Math.round((totalDeuda / totalLimite) * 100) : 0);
+          
+          // Animate counters
+          animateCounters(totalDeuda, totalGastos);
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      }
+    };
+    
+    const animateCounters = (targetDeuda, targetGastos) => {
+      let frame = 0;
+      const totalFrames = 30; // Faster animation
+      const timer = setInterval(() => {
+        frame++;
+        setDeudaCount(Math.round((frame / totalFrames) * targetDeuda));
+        setGastosCount(Math.round((frame / totalFrames) * targetGastos));
+        if (frame >= totalFrames) clearInterval(timer);
+      }, 30);
+    };
+
+    fetchData();
 
     // Tip rotation
     const tipTimer = setInterval(() => {
@@ -52,7 +98,7 @@ export default function ResumenScreen({ navigation }) {
     }, 12000);
 
     return () => {
-      clearInterval(timer);
+      isMounted = false;
       clearInterval(tipTimer);
     };
   }, []);
@@ -81,7 +127,7 @@ export default function ResumenScreen({ navigation }) {
       {/* Welcome */}
       <View style={styles.welcomeRow}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.welcomeTitle}>¡Hola, Usuario! 👋</Text>
+          <Text style={styles.welcomeTitle}>¡Hola, {userName}! 👋</Text>
           <Text style={styles.welcomeSubtitle}>
             Aquí está tu resumen financiero.
           </Text>
@@ -108,12 +154,12 @@ export default function ResumenScreen({ navigation }) {
         </View>
         <View style={styles.statBox}>
           <Text style={styles.statIcon}>🏦</Text>
-          <Text style={styles.statNumber}>3</Text>
+          <Text style={styles.statNumber}>{creditosActivos}</Text>
           <Text style={styles.statLabel}>Créditos Activos</Text>
         </View>
         <View style={styles.statBox}>
           <Text style={styles.statIcon}>📈</Text>
-          <Text style={[styles.statNumber, { color: COLORS.green }]}>22%</Text>
+          <Text style={[styles.statNumber, { color: utilizacion > 30 ? COLORS.red : COLORS.green }]}>{utilizacion}%</Text>
           <Text style={styles.statLabel}>Utilización</Text>
         </View>
       </View>

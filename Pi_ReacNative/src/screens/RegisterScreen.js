@@ -22,7 +22,7 @@ export default function RegisterScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (
       !nombre.trim() ||
       !apellidos.trim() ||
@@ -39,8 +39,43 @@ export default function RegisterScreen({ navigation }) {
       Alert.alert('Error', 'Las contraseñas no coinciden.');
       return;
     }
-    // Solo interfaz: simula registro y navega al Dashboard
-    navigation.replace('Dashboard');
+
+    try {
+      const url = Platform.OS === 'web'
+        ? 'http://localhost:80/v1/usuarios/'
+        : 'http://10.0.0.4:80/v1/usuarios/';
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nombre,
+          apellidos,
+          edad: parseInt(edad, 10),
+          telefono,
+          email,
+          password_hash: password, // Asumiendo que MyAPI maneja el hash o lo guarda así
+          avatar_url: 'https://cdn-icons-png.flaticon.com/512/149/149071.png'
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        Alert.alert('Éxito', 'Cuenta creada correctamente.');
+        navigation.replace('Dashboard', {
+          screen: 'Resumen',
+          params: { userName: nombre, userId: data.usuario?.id || data.id || null } // Fallback to handle missing id if API doesn't return it
+        });
+      } else {
+        Alert.alert('Error', data.detail || 'Error al crear la cuenta.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo conectar con la API.');
+      console.error(error);
+    }
   };
 
   return (

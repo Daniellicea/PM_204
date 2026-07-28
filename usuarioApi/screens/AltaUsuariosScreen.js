@@ -1,15 +1,62 @@
 import React, { useState } from 'react';
-import {View,SafeAreaView,Text,TextInput,Pressable,StyleSheet,} from 'react-native';
+import {View,SafeAreaView,Text,TextInput,Pressable,StyleSheet,Alert,Platform,} from 'react-native';
 
 export default function App() {
   const [nombre, setNombre] = useState('');
   const [edad, setEdad] = useState('');
+  const [cargando, setCargando] = useState(false);
+
+  const mostrarMensaje = (title, mensaje) => {
+    if (Platform.OS === 'web') {
+      window.alert(`${title}\n${mensaje}`);
+    } else {
+      Alert.alert(title, mensaje);
+    }
+  };
+
+  const guardarUsuario = async () => {
+    if (nombre.trim() === '' || edad.trim() === '') {
+      mostrarMensaje("Vacíos", "Completa edad y nombre en el formulario");
+      return;
+    }
+
+    try {
+      setCargando(true);
+
+      const respuesta = await fetch('http://localhost:5000/v1/usuarios', {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          nombre: nombre,
+          edad: Number(edad),
+        }),
+      });
+
+      if (!respuesta.ok) {
+        throw new Error("Error al guardar");
+      }
+
+      const datos = await respuesta.json();
+
+      console.log(datos);
+      mostrarMensaje("Éxito", "Usuario registrado");
+
+      setNombre('');
+      setEdad('');
+
+    } catch (error) {
+      mostrarMensaje("Error", "No fue posible guardar");
+      console.log("Error API", error);
+    } finally {
+      setCargando(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-
       <View style={styles.card}>
-
         <Text style={styles.titulo}>
           Registro de Usuarios
         </Text>
@@ -29,20 +76,21 @@ export default function App() {
           onChangeText={setEdad}
         />
 
-        <Pressable style={styles.boton}>
+        <Pressable
+          style={styles.boton}
+          onPress={guardarUsuario}
+          disabled={cargando}
+        >
           <Text style={styles.textoBoton}>
-            Agregar Usuario
+            {cargando ? "Guardando..." : "Agregar usuario"}
           </Text>
         </Pressable>
-
       </View>
-
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-
   container: {
     flex: 1,
     backgroundColor: '#F5F7FA',
@@ -56,7 +104,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     padding: 25,
     borderRadius: 15,
-    elevation: 5, 
+    elevation: 5,
     shadowColor: '#000',
     shadowOpacity: 0.15,
     shadowRadius: 8,
@@ -98,5 +146,4 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: 'bold',
   },
-
 });

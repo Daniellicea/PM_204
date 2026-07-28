@@ -14,6 +14,7 @@ import IAScreen from '../screens/IAScreen';
 import AcademyScreen from '../screens/AcademyScreen';
 import CalculadoraScreen from '../screens/CalculadoraScreen';
 import PerfilScreen from '../screens/PerfilScreen';
+import ConsultaUsuariosScreen from '../screens/ConsultaUsuariosScreen';
 
 import { COLORS, FONTS, SPACING, RADIUS } from '../theme/colors';
 
@@ -54,7 +55,8 @@ function TabIcon({ icon, label, focused }) {
   );
 }
 
-function DashboardTabs() {
+function DashboardTabs({ route }) {
+  const params = route?.params || {};
   return (
     <View style={{ flex: 1, backgroundColor: COLORS.bgPrimary }}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.bgPrimary} />
@@ -69,6 +71,7 @@ function DashboardTabs() {
         <Tab.Screen
           name="Resumen"
           component={ResumenScreen}
+          initialParams={params}
           options={{
             tabBarIcon: ({ focused }) => (
               <TabIcon icon="📊" label="Resumen" focused={focused} />
@@ -78,6 +81,7 @@ function DashboardTabs() {
         <Tab.Screen
           name="Creditos"
           component={CreditosScreen}
+          initialParams={params}
           options={{
             tabBarIcon: ({ focused }) => (
               <TabIcon icon="⚡" label="Créditos" focused={focused} />
@@ -87,6 +91,7 @@ function DashboardTabs() {
         <Tab.Screen
           name="Gastos"
           component={GastosScreen}
+          initialParams={params}
           options={{
             tabBarIcon: ({ focused }) => (
               <TabIcon icon="💸" label="Gastos" focused={focused} />
@@ -147,6 +152,17 @@ export default function AppNavigator() {
           options={{
             headerShown: true,
             headerTitle: 'Mi Perfil',
+            headerStyle: { backgroundColor: COLORS.bgSecondary },
+            headerTintColor: COLORS.textPrimary,
+            headerTitleStyle: { fontWeight: 'bold' },
+          }}
+        />
+        <Stack.Screen
+          name="ConsultaUsuarios"
+          component={ConsultaUsuariosScreen}
+          options={{
+            headerShown: true,
+            headerTitle: 'Usuarios API',
             headerStyle: { backgroundColor: COLORS.bgSecondary },
             headerTintColor: COLORS.textPrimary,
             headerTitleStyle: { fontWeight: 'bold' },

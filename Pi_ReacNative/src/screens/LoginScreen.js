@@ -17,13 +17,42 @@ export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
       Alert.alert('Campos incompletos', 'Debes llenar todos los campos.');
       return;
     }
-    // Solo interfaz: simula ingreso y navega al Dashboard
-    navigation.replace('Dashboard');
+
+    try {
+      const url = Platform.OS === 'web'
+        ? 'http://localhost:80/v1/usuarios/'
+        : 'http://10.0.0.4:80/v1/usuarios/';
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (response.ok) {
+        // La API no tiene endpoint de login nativo, así que buscamos el correo en los usuarios devueltos
+        const userExists = data.usuarios.find(
+          u => u.email.trim().toLowerCase() === email.trim().toLowerCase()
+        );
+        
+        if (userExists) {
+          Alert.alert('Bienvenido', `Hola de nuevo, ${userExists.nombre}!`);
+          navigation.replace('Dashboard', {
+            screen: 'Resumen',
+            params: { userName: userExists.nombre, userId: userExists.id }
+          });
+        } else {
+          Alert.alert('Error', 'Correo electrónico no registrado o credenciales inválidas.');
+        }
+      } else {
+        Alert.alert('Error', 'No se pudo conectar con la API.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Error de conexión con la base de datos.');
+      console.error(error);
+    }
   };
 
   return (

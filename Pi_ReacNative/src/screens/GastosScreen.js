@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { COLORS, FONTS, SPACING, RADIUS } from '../theme/colors';
 
@@ -39,21 +40,64 @@ const getCatColor = (cat) => {
   }
 };
 
-export default function GastosScreen() {
+export default function GastosScreen({ route }) {
+  const userId = route?.params?.userId || null;
   const [selectedCat, setSelectedCat] = useState('Todos');
+  const [apiGastos, setApiGastos] = useState([]);
+  const [apiCategorias, setApiCategorias] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchData = async () => {
+      if (!userId) return;
+      try {
+        const baseUrl = Platform.OS === 'web' ? 'http://localhost:80' : 'http://10.0.0.4:80';
+        
+        const [gastosRes, catRes] = await Promise.all([
+          fetch(`${baseUrl}/v1/gastos/usuario/${userId}`),
+          fetch(`${baseUrl}/v1/gastos/categorias`)
+        ]);
+
+        const gastosData = await gastosRes.json();
+        const catData = await catRes.json();
+
+        if (isMounted) {
+          if (catData.categorias) {
+            setApiCategorias(catData.categorias);
+          }
+          if (gastosData.gastos) {
+            // Map category names to gastos
+            const mappedGastos = gastosData.gastos.map(g => {
+              const cat = catData.categorias?.find(c => c.id === g.categoria_id);
+              return {
+                ...g,
+                categoria: cat ? cat.nombre : 'Otra',
+                icon: '💸' // Default icon
+              };
+            });
+            setApiGastos(mappedGastos);
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching gastos:", err);
+      }
+    };
+    fetchData();
+    return () => { isMounted = false; };
+  }, [userId]);
 
   const filteredGastos = selectedCat === 'Todos'
-    ? mockGastos
-    : mockGastos.filter(g => g.categoria === selectedCat);
+    ? apiGastos
+    : apiGastos.filter(g => g.categoria === selectedCat);
 
-  const totalMes = mockGastos.reduce((sum, g) => sum + g.monto, 0);
-  const totalHormiga = mockGastos
+  const totalMes = apiGastos.reduce((sum, g) => sum + g.monto, 0);
+  const totalHormiga = apiGastos
     .filter(g => g.categoria === 'Hormiga')
     .reduce((sum, g) => sum + g.monto, 0);
-  const totalVariable = mockGastos
+  const totalVariable = apiGastos
     .filter(g => g.categoria === 'Variable')
     .reduce((sum, g) => sum + g.monto, 0);
-  const totalFijo = mockGastos
+  const totalFijo = apiGastos
     .filter(g => g.categoria === 'Fijo')
     .reduce((sum, g) => sum + g.monto, 0);
 
@@ -110,7 +154,7 @@ export default function GastosScreen() {
         <View style={styles.fugaHeader}>
           <Text style={styles.fugaTitle}>🔍 Detector de Fugas</Text>
           <View style={styles.fugaBadge}>
-            <Text style={styles.fugaBadgeText}>🐜 {mockGastos.filter(g => g.categoria === 'Hormiga').length} gastos hormiga</Text>
+            <Text style={styles.fugaBadgeText}>🐜 {apiGastos.filter(g => g.categoria === 'Hormiga').length} gastos hormiga</Text>
           </View>
         </View>
         <Text style={styles.fugaMsg}>
@@ -156,25 +200,29 @@ export default function GastosScreen() {
 
       {/* Gastos list */}
       <View style={styles.gastosList}>
-        {filteredGastos.map((g, i) => (
-          <View key={i} style={styles.gastoItem}>
-            <View style={[styles.gastoIcon, { backgroundColor: getCatColor(g.categoria) + '20' }]}>
-              <Text style={{ fontSize: 20 }}>{g.icon}</Text>
-            </View>
-            <View style={{ flex: 1, marginLeft: 12 }}>
-              <Text style={styles.gastoDesc}>{g.desc}</Text>
-              <View style={styles.gastoMeta}>
-                <View style={[styles.gastoBadge, { backgroundColor: getCatColor(g.categoria) + '20' }]}>
-                  <Text style={[styles.gastoBadgeText, { color: getCatColor(g.categoria) }]}>
-                    {g.categoria}
-                  </Text>
-                </View>
-                <Text style={styles.gastoFecha}>{g.fecha}</Text>
+        {filteredGastos.length === 0 ? (
+          <Text style={{color: COLORS.textMuted, textAlign: 'center', marginVertical: 20}}>No hay gastos registrados.</Text>
+        ) : (
+          filteredGastos.map((g, i) => (
+            <View key={g.id || i} style={styles.gastoItem}>
+              <View style={[styles.gastoIcon, { backgroundColor: getCatColor(g.categoria) + '20' }]}>
+                <Text style={{ fontSize: 20 }}>{g.icon}</Text>
               </View>
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text style={styles.gastoDesc}>{g.descripcion || g.desc}</Text>
+                <View style={styles.gastoMeta}>
+                  <View style={[styles.gastoBadge, { backgroundColor: getCatColor(g.categoria) + '20' }]}>
+                    <Text style={[styles.gastoBadgeText, { color: getCatColor(g.categoria) }]}>
+                      {g.categoria}
+                    </Text>
+                  </View>
+                  <Text style={styles.gastoFecha}>{g.fecha}</Text>
+                </View>
+              </View>
+              <Text style={styles.gastoMonto}>-${g.monto.toLocaleString()}</Text>
             </View>
-            <Text style={styles.gastoMonto}>-${g.monto.toLocaleString()}</Text>
-          </View>
-        ))}
+          ))
+        )}
       </View>
 
       {/* Add expense button */}

@@ -1,9 +1,10 @@
-import { View, Text, FlatList, StyleSheet, Platform } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState, useCallback } from 'react';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 
 export default function ConsultaUsuariosScreen() {
+  const router = useRouter();
 
   const [usuarios, setUsuarios] = useState([]);
 
@@ -12,7 +13,7 @@ export default function ConsultaUsuariosScreen() {
 
       const url = Platform.OS === 'web'
         ? 'http://localhost:5000/v1/usuarios/'
-        : 'http://192.168.100.43:5000/v1/usuarios/';
+        : 'http://192.168.100.39:5000/v1/usuarios/';
 
       console.log("Petición a:", url);
 
@@ -49,6 +50,13 @@ export default function ConsultaUsuariosScreen() {
       <Text style={styles.info}>
         Edad: {item.edad} años
       </Text>
+
+      <TouchableOpacity 
+        style={styles.botonDetalle}
+        onPress={() => router.push({ pathname: '/detalles', params: { usuario: JSON.stringify(item) } })}
+      >
+        <Text style={styles.textoBoton}>Ver detalle</Text>
+      </TouchableOpacity>
 
     </View>
   );
@@ -129,6 +137,20 @@ const styles = StyleSheet.create({
   info: {
     fontSize: 16,
     color: '#4B5563',
+    marginBottom: 15,
+  },
+
+  botonDetalle: {
+    backgroundColor: '#2563EB',
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+
+  textoBoton: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
 
 });

@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {View,SafeAreaView,Text,TextInput,Pressable,StyleSheet,Alert,Platform,} from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
-export default function App() {
-  const [nombre, setNombre] = useState('');
-  const [edad, setEdad] = useState('');
+export default function AltaUsuariosScreen() {
+  const params = useLocalSearchParams();
+  const usuarioAEditar = params.usuario ? JSON.parse(params.usuario) : null;
+  const isEditing = !!usuarioAEditar;
+  const router = useRouter();
+
+  const [nombre, setNombre] = useState(usuarioAEditar ? usuarioAEditar.nombre : '');
+  const [edad, setEdad] = useState(usuarioAEditar ? usuarioAEditar.edad.toString() : '');
   const [cargando, setCargando] = useState(false);
 
   const mostrarMensaje = (title, mensaje) => {
@@ -23,11 +29,23 @@ export default function App() {
     try {
       setCargando(true);
 
-      const respuesta = await fetch('http://localhost:5000/v1/usuarios', {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const baseUrl = Platform.OS === 'web'
+        ? 'http://localhost:5000/v1/usuarios'
+        : 'http://192.168.100.39:5000/v1/usuarios';
+
+      const url = isEditing ? `${baseUrl}/${usuarioAEditar.id}` : baseUrl;
+      const method = isEditing ? "PUT" : "POST";
+
+      const headers = new Headers();
+      headers.set("Content-Type", "application/json");
+
+      if (isEditing) {
+        headers.set('Authorization', 'Basic YWRtaW46MTIzNA==');
+      }
+
+      const respuesta = await fetch(url, {
+        method: method,
+        headers: headers,
         body: JSON.stringify({
           nombre: nombre,
           edad: Number(edad),
@@ -41,10 +59,15 @@ export default function App() {
       const datos = await respuesta.json();
 
       console.log(datos);
-      mostrarMensaje("Éxito", "Usuario registrado");
+      mostrarMensaje("Éxito", isEditing ? "Usuario actualizado" : "Usuario registrado");
 
-      setNombre('');
-      setEdad('');
+      if (isEditing) {
+        router.replace('/consulta');
+      } else {
+        setNombre('');
+        setEdad('');
+        router.replace('/consulta');
+      }
 
     } catch (error) {
       mostrarMensaje("Error", "No fue posible guardar");
@@ -58,7 +81,7 @@ export default function App() {
     <SafeAreaView style={styles.container}>
       <View style={styles.card}>
         <Text style={styles.titulo}>
-          Registro de Usuarios
+          {isEditing ? "Editar Usuario" : "Registro de Usuarios"}
         </Text>
 
         <TextInput
@@ -82,7 +105,7 @@ export default function App() {
           disabled={cargando}
         >
           <Text style={styles.textoBoton}>
-            {cargando ? "Guardando..." : "Agregar usuario"}
+            {cargando ? "Guardando..." : (isEditing ? "Actualizar usuario" : "Agregar usuario")}
           </Text>
         </Pressable>
       </View>

@@ -2,10 +2,18 @@ import React from 'react';
 import { View, Text, StyleSheet, Platform, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { BASE_API_URL } from '../config';
 
 export default function DetallesUsuarioScreen() {
   const params = useLocalSearchParams();
-  const usuario = params.usuario ? JSON.parse(params.usuario) : {};
+  let usuario = {};
+  if (params && params.usuario) {
+    try {
+      usuario = typeof params.usuario === 'string' ? JSON.parse(params.usuario) : params.usuario;
+    } catch (e) {
+      usuario = {};
+    }
+  }
   const router = useRouter();
 
   const confirmarEliminar = () => {
@@ -27,9 +35,7 @@ export default function DetallesUsuarioScreen() {
 
   const eliminarUsuario = async () => {
     try {
-      const url = Platform.OS === 'web'
-        ? `http://localhost:5000/v1/usuarios/${usuario.id}`
-        : `http://192.168.100.39:5000/v1/usuarios/${usuario.id}`;
+      const url = `${BASE_API_URL}${usuario.id}`;
 
       // Cabecera de autenticación básica (admin:1234 en base64)
       const headers = new Headers();
@@ -77,14 +83,14 @@ export default function DetallesUsuarioScreen() {
         </View>
 
         <View style={styles.botonesContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.boton, styles.botonEditar]}
-            onPress={() => router.push({ pathname: '/alta', params: { usuario: JSON.stringify(usuario) } })}
+            onPress={() => router.push({ pathname: '/editar', params: { usuario: JSON.stringify(usuario) } })}
           >
             <Text style={styles.textoBoton}>Editar</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.boton, styles.botonEliminar]}
             onPress={confirmarEliminar}
           >

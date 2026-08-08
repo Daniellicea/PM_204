@@ -1,77 +1,135 @@
-import React, { useState, useEffect } from 'react';
-import {View,SafeAreaView,Text,TextInput,Pressable,StyleSheet,Alert,Platform,} from 'react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  StyleSheet,
+  Alert,
+  Platform,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { BASE_API_URL } from '../config';
 
 export default function AltaUsuariosScreen() {
   const params = useLocalSearchParams();
-  const usuarioAEditar = params.usuario ? JSON.parse(params.usuario) : null;
+  let usuarioAEditar = null;
+  if (params && params.usuario) {
+    try {
+      usuarioAEditar = typeof params.usuario === 'string' ? JSON.parse(params.usuario) : params.usuario;
+    } catch (e) {
+      usuarioAEditar = null;
+    }
+  }
+
   const isEditing = !!usuarioAEditar;
   const router = useRouter();
 
-  const [nombre, setNombre] = useState(usuarioAEditar ? usuarioAEditar.nombre : '');
-  const [edad, setEdad] = useState(usuarioAEditar ? usuarioAEditar.edad.toString() : '');
+  const [nombre, setNombre] = useState(
+    usuarioAEditar ? usuarioAEditar.nombre : ''
+  );
+
+  const [edad, setEdad] = useState(
+    usuarioAEditar ? usuarioAEditar.edad.toString() : ''
+  );
+
   const [cargando, setCargando] = useState(false);
 
-  const mostrarMensaje = (title, mensaje) => {
+  const mostrarMensaje = (titulo, mensaje) => {
     if (Platform.OS === 'web') {
-      window.alert(`${title}\n${mensaje}`);
+      window.alert(`${titulo}\n${mensaje}`);
     } else {
-      Alert.alert(title, mensaje);
+      Alert.alert(titulo, mensaje);
     }
   };
 
   const guardarUsuario = async () => {
-    if (nombre.trim() === '' || edad.trim() === '') {
-      mostrarMensaje("Vacíos", "Completa edad y nombre en el formulario");
+    const nombreLimpio = nombre.trim();
+    const edadNumero = parseInt(edad.trim(), 10);
+
+    if (nombreLimpio === '' || edad.trim() === '') {
+      mostrarMensaje(
+        'Campos vacíos',
+        'Completa el nombre y la edad.'
+      );
+      return;
+    }
+
+    if (nombreLimpio.length < 3) {
+      mostrarMensaje(
+        'Nombre muy corto',
+        'El nombre debe tener al menos 3 caracteres.'
+      );
+      return;
+    }
+
+    if (isNaN(edadNumero) || edadNumero < 0 || edadNumero > 120) {
+      mostrarMensaje(
+        'Edad inválida',
+        'Ingresa una edad válida entre 0 y 120 años.'
+      );
       return;
     }
 
     try {
       setCargando(true);
 
-      const baseUrl = Platform.OS === 'web'
-        ? 'http://localhost:5000/v1/usuarios'
-        : 'http://192.168.100.39:5000/v1/usuarios';
+      const baseUrl = BASE_API_URL;
 
-      const url = isEditing ? `${baseUrl}/${usuarioAEditar.id}` : baseUrl;
-      const method = isEditing ? "PUT" : "POST";
+      const url = isEditing
+        ? `${baseUrl}${usuarioAEditar.id}`
+        : baseUrl;
 
-      const headers = new Headers();
-      headers.set("Content-Type", "application/json");
+      const method = isEditing ? 'PUT' : 'POST';
+
+      const headers = {
+        'Content-Type': 'application/json',
+      };
 
       if (isEditing) {
-        headers.set('Authorization', 'Basic YWRtaW46MTIzNA==');
+        headers['Authorization'] = 'Basic YWRtaW46MTIzNA==';
       }
 
       const respuesta = await fetch(url, {
-        method: method,
-        headers: headers,
+        method,
+        headers,
         body: JSON.stringify({
-          nombre: nombre,
-          edad: Number(edad),
+          nombre: nombreLimpio,
+          edad: edadNumero,
         }),
       });
 
       if (!respuesta.ok) {
-        throw new Error("Error al guardar");
+        const errorData = await respuesta.json().catch(() => null);
+        let mensajeError = 'No fue posible guardar el usuario.';
+        if (errorData?.detail) {
+          if (Array.isArray(errorData.detail)) {
+            mensajeError = errorData.detail.map(d => d.msg || d.message).join(', ');
+          } else if (typeof errorData.detail === 'string') {
+            mensajeError = errorData.detail;
+          }
+        }
+        throw new Error(mensajeError);
       }
 
       const datos = await respuesta.json();
+      console.log('Respuesta del servidor:', datos);
 
-      console.log(datos);
-      mostrarMensaje("Éxito", isEditing ? "Usuario actualizado" : "Usuario registrado");
+      mostrarMensaje(
+        'Éxito',
+        isEditing
+          ? 'Usuario actualizado correctamente'
+          : 'Usuario registrado correctamente'
+      );
 
-      if (isEditing) {
-        router.replace('/consulta');
-      } else {
-        setNombre('');
-        setEdad('');
-        router.replace('/consulta');
-      }
+      setNombre('');
+      setEdad('');
 
+      router.replace('/(tabs)/consulta');
     } catch (error) {
-      mostrarMensaje("Error", "No fue posible guardar");
-      console.log("Error API", error);
+      console.error('Error al guardar:', error);
+      mostrarMensaje('Error', error.message || 'No fue posible guardar el usuario.');
     } finally {
       setCargando(false);
     }
@@ -81,19 +139,21 @@ export default function AltaUsuariosScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.card}>
         <Text style={styles.titulo}>
-          {isEditing ? "Editar Usuario" : "Registro de Usuarios"}
+          {isEditing ? 'Editar Usuario' : 'Registro de Usuarios'}
         </Text>
 
         <TextInput
           style={styles.input}
-          placeholder="Nombre del usuario"
+          placeholder="Nombre"
+          placeholderTextColor="#6B7280"
           value={nombre}
           onChangeText={setNombre}
         />
 
         <TextInput
           style={styles.input}
-          placeholder="Edad del usuario"
+          placeholder="Edad"
+          placeholderTextColor="#6B7280"
           keyboardType="numeric"
           value={edad}
           onChangeText={setEdad}
@@ -105,7 +165,11 @@ export default function AltaUsuariosScreen() {
           disabled={cargando}
         >
           <Text style={styles.textoBoton}>
-            {cargando ? "Guardando..." : (isEditing ? "Actualizar usuario" : "Agregar usuario")}
+            {cargando
+              ? 'Guardando...'
+              : isEditing
+                ? 'Actualizar usuario'
+                : 'Agregar usuario'}
           </Text>
         </Pressable>
       </View>
@@ -154,6 +218,7 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     backgroundColor: '#F9FAFB',
     fontSize: 16,
+    color: '#1F2937',
   },
 
   boton: {

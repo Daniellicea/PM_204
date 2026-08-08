@@ -1,5 +1,9 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+from typing import Union, Optional
 
 class UsuarioBase(BaseModel):
-    nombre: str = Field(..., min_length=3, max_length=50)
-    edad: int = Field(..., ge=0, le=120)
+    nombre: Optional[str] = "Sin nombre"
+    edad: Optional[Union[int, str]] = 0
+
+    class Config:
+        extra = "allow"

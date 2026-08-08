@@ -73,7 +73,7 @@ export default function CreditosScreen({ route }) {
     const fetchData = async () => {
       if (!userId) return;
       try {
-        const baseUrl = Platform.OS === 'web' ? 'http://localhost:80' : 'http://10.0.0.4:80';
+        const baseUrl = 'http://3.80.132.97:5000';
         
         const [creditosRes, instRes] = await Promise.all([
           fetch(`${baseUrl}/v1/creditos/usuario/${userId}`),

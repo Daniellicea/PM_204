@@ -47,7 +47,7 @@ export default function ResumenScreen({ navigation, route }) {
       if (!userId) return;
       
       try {
-        const baseUrl = Platform.OS === 'web' ? 'http://localhost:80' : 'http://10.0.0.4:80';
+        const baseUrl = 'http://3.80.132.97:5000';
         
         // Fetch Gastos
         const gastosRes = await fetch(`${baseUrl}/v1/gastos/usuario/${userId}`);

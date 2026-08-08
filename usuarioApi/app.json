@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "repa2",
-    "slug": "repa2",
+    "name": "Practica_21",
+    "slug": "Practica_21",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/splash-icon.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -16,6 +16,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.danyliceag.practica21",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -26,7 +27,22 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router"
-    ]
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
+      "expo-font"
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "211d9900-86bf-4ab2-b28e-305b38b47a29"
+      }
+    }
   }
 }

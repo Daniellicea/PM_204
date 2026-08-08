@@ -25,8 +25,8 @@ export default function LoginScreen({ navigation }) {
 
     try {
       const url = Platform.OS === 'web'
-        ? 'http://localhost:80/v1/usuarios/'
-        : 'http://10.0.0.4:80/v1/usuarios/';
+        ? 'http://3.80.132.97:5000/v1/usuarios/'
+        : 'http://3.80.132.97:5000/v1/usuarios/';
 
       const response = await fetch(url);
       const data = await response.json();

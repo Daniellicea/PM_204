@@ -10,8 +10,8 @@ export default function ConsultaUsuariosScreen({ navigation }) {
   const obtenerUsuarios = async () => {
     try {
       const url = Platform.OS === 'web'
-        ? 'http://localhost:80/v1/usuarios/'
-        : 'http://192.168.100.43:80/v1/usuarios/';
+        ? 'http://3.80.132.97:5000/v1/usuarios/'
+        : 'http://3.80.132.97:5000/v1/usuarios/';
 
       console.log("Petición a:", url);
 

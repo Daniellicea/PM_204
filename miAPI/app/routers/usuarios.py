@@ -25,15 +25,21 @@ async def leer_usuarios(db: Session = Depends(get_db)):
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def crear_usuario(usuario: UsuarioBase, db: Session = Depends(get_db)):
-     nuevo_usuario = Usuario(
-        nombre=usuario.nombre,
-        edad=usuario.edad )
-     
-     db.add(nuevo_usuario)
-     db.commit()
-     db.refresh(nuevo_usuario)
-     
-     return {
+    try:
+        edad_num = int(usuario.edad) if usuario.edad is not None else 0
+    except (ValueError, TypeError):
+        edad_num = 0
+
+    nuevo_usuario = Usuario(
+        nombre=str(usuario.nombre or "Sin nombre"),
+        edad=edad_num
+    )
+    
+    db.add(nuevo_usuario)
+    db.commit()
+    db.refresh(nuevo_usuario)
+    
+    return {
         "mensaje": "Usuario Agregado",
         "usuario": nuevo_usuario
     }
@@ -51,8 +57,13 @@ async def actualizar_usuario(
     if not usuario:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
-    usuario.nombre = usuario_actualizado.nombre
-    usuario.edad = usuario_actualizado.edad
+    try:
+        edad_num = int(usuario_actualizado.edad) if usuario_actualizado.edad is not None else 0
+    except (ValueError, TypeError):
+        edad_num = 0
+
+    usuario.nombre = str(usuario_actualizado.nombre or usuario.nombre)
+    usuario.edad = edad_num
 
     db.commit()
     db.refresh(usuario)

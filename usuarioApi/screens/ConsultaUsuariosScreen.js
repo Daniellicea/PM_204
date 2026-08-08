@@ -2,6 +2,7 @@ import { View, Text, FlatList, StyleSheet, Platform, TouchableOpacity } from 're
 import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { useState, useCallback } from 'react';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { BASE_API_URL } from '../config';
 
 export default function ConsultaUsuariosScreen() {
   const router = useRouter();
@@ -10,21 +11,19 @@ export default function ConsultaUsuariosScreen() {
 
   const obtenerUsuarios = async () => {
     try {
-
-      const url = Platform.OS === 'web'
-        ? 'http://localhost:5000/v1/usuarios/'
-        : 'http://192.168.100.39:5000/v1/usuarios/';
-
+      const url = BASE_API_URL;
       console.log("Petición a:", url);
 
       const respuesta = await fetch(url);
-
       const datos = await respuesta.json();
-
       console.log("Respuesta API:", datos);
 
-      setUsuarios(datos.usuarios);
-
+      const lista = Array.isArray(datos?.usuarios)
+        ? datos.usuarios
+        : Array.isArray(datos)
+        ? datos
+        : [];
+      setUsuarios(lista);
     } catch (error) {
       console.error("Error al obtener usuarios:", error);
     }
@@ -51,7 +50,7 @@ export default function ConsultaUsuariosScreen() {
         Edad: {item.edad} años
       </Text>
 
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.botonDetalle}
         onPress={() => router.push({ pathname: '/detalles', params: { usuario: JSON.stringify(item) } })}
       >
